@@ -29,7 +29,7 @@ export default function RootLayout({
       >
         <header className="bg-black shadow">
           <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div className="text-2xl font-bold">MyApp</div>
+            <div className="text-2xl font-bold">PriceView</div>
             <nav className="flex gap-6">
               <a href="/" className="hover:text-gray-600">Home</a>
               <a href="/about" className="hover:text-gray-600">About</a>
