@@ -24,3 +24,25 @@ body {
   color: var(--foreground);
   font-family:  var(--font-source-code-pro), monospace;
 }
+
+
+.custom-scroll::-webkit-scrollbar,
+.custom-scroll-x::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track,
+.custom-scroll-x::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb,
+.custom-scroll-x::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover,
+.custom-scroll-x::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+

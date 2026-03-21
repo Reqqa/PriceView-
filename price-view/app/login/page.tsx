@@ -36,7 +36,6 @@ export default function LoginPage() {
       return
     }
 
-    // Success — redirect to dashboard
     router.push('/dashboard')
   }
 

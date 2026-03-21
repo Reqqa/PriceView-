@@ -2,12 +2,13 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  console.log('middleware hit:', request.nextUrl.pathname)
+export async function proxy(request: NextRequest) {
+  console.log('proxy hit:', request.nextUrl.pathname)
 
   let response = NextResponse.next({
     request: { headers: request.headers },
   })
+  
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
