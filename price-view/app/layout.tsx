@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Source_Code_Pro } from "next/font/google";
+import { Geist, Geist_Mono, Source_Code_Pro, Raleway } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/app/components/navbar";
 
-const sourceCodePro = Source_Code_Pro({
+const sourceCodePro = Raleway({
   variable: "--font-source-code-pro",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -34,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${sourceCodePro.variable} antialiased`}
         style={{
-          background: '#0a0a1a',
+          background: '#000000',
           minHeight: '100vh',
           margin: 0,
           padding: 0

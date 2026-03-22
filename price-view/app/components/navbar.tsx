@@ -25,7 +25,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="bg-black/80 backdrop-blur shadow" style={{ zIndex: 50, position: 'relative' }}>
+    <header className="bg-black/30 backdrop-blur shadow" style={{ zIndex: 50, position: 'relative' }}>
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
 
         {/* Logo */}

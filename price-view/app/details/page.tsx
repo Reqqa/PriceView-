@@ -4,12 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getQuote, getCompanyNews, searchSymbol } from '@/app/lib/finnhub'
 import { supabase } from '@/app/lib/supabase'
-
-const glass = {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  backdropFilter: 'blur(12px)',
-}
+import { GlassCard, SectionCard, ComingSoon, NewsItem, LoadingPulse, Button } from '@/app/components/ui'
 
 function TradingViewWidget({ symbol }: { symbol: string }) {
   const container = useRef<HTMLDivElement>(null)
@@ -47,7 +42,6 @@ function DetailsContent() {
   const router = useRouter()
   const symbol = searchParams.get('symbol') ?? 'AAPL'
 
-  // Search state
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<{ symbol: string; description: string }[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
@@ -55,20 +49,12 @@ function DetailsContent() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const [quote, setQuote] = useState<{
-    price: number
-    change: number
-    changePercent: number
-    high: number
-    low: number
-    open: number
+    price: number; change: number; changePercent: number
+    high: number; low: number; open: number
   } | null>(null)
 
   const [news, setNews] = useState<{
-    headline: string
-    summary: string
-    datetime: number
-    url: string
-    source: string
+    headline: string; summary: string; datetime: number; url: string; source: string
   }[]>([])
 
   const [newsLoading, setNewsLoading] = useState(true)
@@ -78,17 +64,13 @@ function DetailsContent() {
   const [userId, setUserId] = useState<string | null>(null)
   const isPositive = (quote?.change ?? 0) >= 0
 
-  // Search logic
   useEffect(() => {
     if (query.length < 1) { setResults([]); setShowDropdown(false); return }
     const timeout = setTimeout(async () => {
       setSearching(true)
       try {
         const data = await searchSymbol(query)
-        const filtered = data
-          .filter((r: { symbol: string; description: string }) => !r.symbol.includes('.'))
-          .slice(0, 6)
-        setResults(filtered)
+        setResults(data.filter((r: { symbol: string }) => !r.symbol.includes('.')).slice(0, 6))
         setShowDropdown(true)
       } catch { setResults([]) }
       finally { setSearching(false) }
@@ -98,30 +80,25 @@ function DetailsContent() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
-        setShowDropdown(false)
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowDropdown(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
   function handleSelect(sym: string) {
-    setQuery('')
-    setShowDropdown(false)
+    setQuery(''); setShowDropdown(false)
     router.push(`/details?symbol=${sym}`)
   }
 
-  // Get user and check if stock is already tracked
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getUser()
       const uid = data.user?.id ?? null
       setUserId(uid)
       if (uid) {
-        const { data: existing } = await supabase
-          .from('watchlist').select('id')
-          .eq('user_id', uid).eq('symbol', symbol)
-          .maybeSingle()
+        const { data: existing } = await supabase.from('watchlist').select('id')
+          .eq('user_id', uid).eq('symbol', symbol).maybeSingle()
         setTracked(!!existing)
       }
     }
@@ -132,8 +109,7 @@ function DetailsContent() {
     if (!userId) return
     setTrackLoading(true)
     if (tracked) {
-      await supabase.from('watchlist').delete()
-        .eq('user_id', userId).eq('symbol', symbol)
+      await supabase.from('watchlist').delete().eq('user_id', userId).eq('symbol', symbol)
       setTracked(false)
     } else {
       await supabase.from('watchlist').insert({ user_id: userId, symbol })
@@ -145,14 +121,9 @@ function DetailsContent() {
   useEffect(() => {
     setLoading(true)
     async function fetchQuote() {
-      try {
-        const data = await getQuote(symbol)
-        setQuote(data)
-      } catch (err) {
-        console.error('Failed to fetch quote:', err)
-      } finally {
-        setLoading(false)
-      }
+      try { const data = await getQuote(symbol); setQuote(data) }
+      catch (err) { console.error(err) }
+      finally { setLoading(false) }
     }
     fetchQuote()
     const interval = setInterval(fetchQuote, 10000)
@@ -162,27 +133,12 @@ function DetailsContent() {
   useEffect(() => {
     setNewsLoading(true)
     async function fetchNews() {
-      try {
-        const data = await getCompanyNews(symbol)
-        setNews(data)
-      } catch (err) {
-        console.error('Failed to fetch news:', err)
-      } finally {
-        setNewsLoading(false)
-      }
+      try { const data = await getCompanyNews(symbol); setNews(data) }
+      catch (err) { console.error(err) }
+      finally { setNewsLoading(false) }
     }
     fetchNews()
   }, [symbol])
-
-  function formatNewsTime(datetime: number) {
-    const diff = Date.now() - datetime * 1000
-    const mins = Math.floor(diff / 60000)
-    if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
-    const days = Math.floor(hours / 24)
-    return `${days} day${days !== 1 ? 's' : ''} ago`
-  }
 
   return (
     <div className="space-y-4 p-4 max-w-6xl mx-auto text-white">
@@ -198,7 +154,7 @@ function DetailsContent() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             className="w-full px-4 py-3 rounded-lg text-white text-sm placeholder-white/40 focus:outline-none transition"
-            style={{ ...glass, border: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)' }}
             suppressHydrationWarning
           />
           {searching && (
@@ -231,10 +187,8 @@ function DetailsContent() {
       </div>
 
       {/* Price Section */}
-      <div className="p-4 rounded-lg" style={glass}>
-        {loading ? (
-          <p className="text-white/40 text-sm animate-pulse">Loading live price...</p>
-        ) : quote ? (
+      <GlassCard>
+        {loading ? <LoadingPulse message="Loading live price..." /> : quote ? (
           <div className="flex justify-between items-center">
             <div>
               <p className="text-3xl font-bold text-blue-400">${quote.price.toFixed(2)}</p>
@@ -248,10 +202,8 @@ function DetailsContent() {
               <p className="text-xs text-white/50 mt-1">Open: ${quote.open.toFixed(2)}</p>
             </div>
           </div>
-        ) : (
-          <p className="text-red-400 text-sm">Failed to load price data.</p>
-        )}
-      </div>
+        ) : <p className="text-red-400 text-sm">Failed to load price data.</p>}
+      </GlassCard>
 
       {/* Key Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -261,15 +213,15 @@ function DetailsContent() {
           { label: 'Day Low', value: `$${quote?.low.toFixed(2)}`, color: 'text-red-400' },
           { label: 'Change %', value: `${isPositive ? '+' : ''}${quote?.changePercent.toFixed(2)}%`, color: isPositive ? 'text-green-400' : 'text-red-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="p-4 rounded-lg" style={glass}>
+          <GlassCard key={label}>
             <p className="text-white/50 text-xs">{label}</p>
             <p className={`text-lg font-bold ${color}`}>{loading ? '...' : value}</p>
-          </div>
+          </GlassCard>
         ))}
       </div>
 
       {/* TradingView Chart */}
-      <div className="p-4 rounded-lg" style={glass}>
+      <GlassCard>
         <div className="mb-4">
           <p className="text-white/40 text-xs uppercase tracking-widest">Price Chart</p>
           <p className="text-2xl font-bold">{loading ? '...' : `$${quote?.price.toFixed(2)}`}</p>
@@ -278,59 +230,29 @@ function DetailsContent() {
           </p>
         </div>
         <TradingViewWidget symbol={symbol} />
-      </div>
+      </GlassCard>
 
       {/* News */}
-      <div className="p-4 rounded-lg" style={glass}>
-        <h2 className="text-lg font-bold mb-3">Latest News</h2>
-        <div className="space-y-3">
-          {newsLoading ? (
-            <p className="text-white/40 text-sm animate-pulse">Loading news...</p>
-          ) : news.length > 0 ? (
-            news.map((article) => (
-              <a key={article.url} href={article.url} target="_blank" rel="noopener noreferrer"
-                className="block pl-3 py-2 rounded-lg hover:opacity-80 transition-opacity"
-                style={{ border: '1px solid rgba(99,160,255,0.3)', borderLeft: '2px solid rgba(99,160,255,0.8)' }}>
-                <p className="text-xs text-white/40">{formatNewsTime(article.datetime)} · {article.source}</p>
-                <p className="font-semibold text-sm">{article.headline}</p>
-                {article.summary && (
-                  <p className="text-white/60 text-xs mt-1 line-clamp-2">{article.summary}</p>
-                )}
-              </a>
-            ))
-          ) : (
-            <p className="text-white/40 text-sm">No recent news found.</p>
-          )}
-        </div>
-      </div>
+      <SectionCard title="Latest News">
+        {newsLoading ? <LoadingPulse message="Loading news..." /> :
+          news.length > 0 ? (
+            <div className="space-y-3">
+              {news.map((article) => <NewsItem key={article.url} {...article} />)}
+            </div>
+          ) : <p className="text-white/40 text-sm">No recent news found.</p>}
+      </SectionCard>
 
-      {/* AI Summary - Coming Soon */}
-      <div className="p-4 rounded-lg" style={glass}>
-        <h2 className="text-lg font-bold mb-3">AI Summary</h2>
-        <div className="flex flex-col items-center justify-center py-8 rounded-lg gap-2"
-          style={{ border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <p className="text-2xl">zz</p>
-          <p className="text-sm font-semibold text-white/60 tracking-widest uppercase">Coming Soon</p>
-          <p className="text-xs text-white/30 text-center max-w-xs">
-            AI-powered news sentiment and stock analysis will appear here.
-          </p>
-        </div>
-      </div>
+      {/* AI Summary */}
+      <SectionCard title="AI Summary">
+        <ComingSoon description="AI-powered news sentiment and stock analysis will appear here." />
+      </SectionCard>
 
       {/* Actions */}
       <div className="flex gap-3 mt-4">
-        <a href="/dashboard" className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-          Back to Portfolio Dashboard
-        </a>
-        <button onClick={handleTrack} disabled={trackLoading}
-          className="px-6 py-2 rounded font-semibold text-sm transition disabled:opacity-50"
-          style={{
-            background: tracked ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.08)',
-            border: tracked ? '1px solid rgba(74,222,128,0.5)' : '1px solid rgba(255,255,255,0.15)',
-            color: tracked ? '#4ade80' : 'rgba(255,255,255,0.7)',
-          }}>
+        <Button href="/dashboard" variant="solid">Back to Portfolio Dashboard</Button>
+        <Button onClick={handleTrack} disabled={trackLoading} variant={tracked ? 'ghost' : 'outline'}>
           {trackLoading ? '...' : tracked ? '✓ Tracking' : '+ Track this Stock'}
-        </button>
+        </Button>
       </div>
 
       <p className="text-center text-white/30 text-xs mt-6">Designed by Req</p>
