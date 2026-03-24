@@ -63,8 +63,9 @@ export default function Navbar() {
             <a href="/details" onClick={() => setMenuOpen(false)} className="text-white hover:text-blue-400 transition text-sm ">
               Stock Details
             </a>
-            <span className="text-white/30 text-sm  cursor-not-allowed">Placeholder</span>
-            <span className="text-white/30 text-sm  cursor-not-allowed">Placeholder</span>
+             <a href="/screener" onClick={() => setMenuOpen(false)} className="text-white hover:text-blue-400 transition text-sm ">
+              Stock Screener
+            </a>
             <button
               onClick={() => setMenuOpen(false)}
               className="text-white/60 hover:text-white transition text-lg leading-none"

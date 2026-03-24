@@ -12,6 +12,7 @@ export async function getQuote(symbol: string) {
     high: data.h,
     low: data.l,
     open: data.o,
+    volume: data.v,
   }
 }
 
@@ -38,4 +39,34 @@ export async function getCompanyNews(symbol: string) {
     url: string
     source: string
   }[]
+}
+
+
+export async function getMassQuotes(
+  tickers: string[],
+  onProgress?: (loaded: number, total: number) => void
+): Promise<Record<string, Awaited<ReturnType<typeof getQuote>>>> {
+  const results: Record<string, Awaited<ReturnType<typeof getQuote>>> = {}
+  const chunkSize = 10
+
+  for (let i = 0; i < tickers.length; i += chunkSize) {
+    const chunk = tickers.slice(i, i + chunkSize)
+
+    await Promise.all(
+      chunk.map(async (ticker) => {
+        try {
+          results[ticker] = await getQuote(ticker)
+        } catch {
+        }
+      })
+    )
+
+    onProgress?.(Math.min(i + chunkSize, tickers.length), tickers.length)
+
+    if (i + chunkSize < tickers.length) {
+      await new Promise(r => setTimeout(r, 1000))
+    }
+  }
+
+  return results
 }
